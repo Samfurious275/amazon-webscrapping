@@ -1,0 +1,64 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import time
+import  pandas as pd
+
+driver = webdriver.Chrome()
+driver.implicitly_wait(10)
+driver.get("https://www.amazon.com/")
+change = driver.find_element(By.XPATH, '//*[@id="nav-main"]/div[1]/div/div/div[3]/span[2]/span/input')
+change.click()
+time.sleep(3)
+outside = driver.find_element(By.CLASS_NAME,'a-dropdown-container')
+outside.click()
+lst = outside.find_element(By.CLASS_NAME,'a-native-dropdown')
+opt = outside.find_element(By.TAG_NAME,'select')
+options = opt.find_elements(By.TAG_NAME, 'option')
+print("selecting")
+for i in options:
+    print("clicking")
+    if i.text.strip() == 'Qatar':
+        i.click()
+        print("selected")
+        break
+    else:
+        print('error')
+print('done')
+done = driver.find_element(By.NAME,'glowDoneButton')
+done.click()
+driver.refresh()
+search = driver.find_element(By.XPATH,'(//*[@type="text"])[1]')
+search.send_keys("phones")
+search.send_keys(Keys.RETURN)
+driver.refresh()
+
+product_name = []
+price = []
+nexts = []
+def get_title():
+    titles = driver.find_elements(By.CLASS_NAME, 'a-size-mini')
+    prices = driver.find_elements(By.CLASS_NAME, 'a-price-whole')
+
+    for titl, pric in zip(titles, prices):
+        product_name.append(titl.text)
+        price.append(pric.text)
+
+def get_next():
+
+    next = driver.find_element(By.CLASS_NAME,'s-pagination-next ')
+    nexts.append(next)
+    next.click()
+
+pages = int(input('how many you want to scrape pages'))
+for i in range(2):
+    get_title()
+    get_next()
+    time.sleep(5)
+    driver.refresh()
+data_dic = {
+    'names':product_name,
+    'prices':price
+}
+df = pd.DataFrame(data_dic)
+df.to_csv('sample.csv')
